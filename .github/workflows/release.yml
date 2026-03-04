@@ -1,0 +1,97 @@
+name: Release — CANARY Enterprise Suite
+
+on:
+    push:
+        tags:
+            - "v*.*.*" # Trigger on version tags (e.g., v1.0.0, v1.2.3)
+
+jobs:
+    create-release:
+        name: Create GitHub Release
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+            packages: write
+        outputs:
+            upload_url: ${{ steps.create_release.outputs.upload_url }}
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Generate Release Notes
+              uses: actions/github-script@v6
+              id: generate_release_notes
+              with:
+                  script: |
+                      const { data: generatedNotes } = await github.rest.repos.generateReleaseNotes({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        tag_name: context.payload.ref.replace('refs/tags/', ''),
+                      });
+                      return generatedNotes.body;
+
+            - name: Create Release
+              id: create_release
+              uses: softprops/action-gh-release@v1
+              with:
+                  name: Release ${{ github.ref_name }}
+                  body: ${{ steps.generate_release_notes.outputs.result }}
+                  draft: false
+                  prerelease: false
+
+    build-and-push-docker:
+        name: Build & Push Docker Images (GHCR)
+        needs: create-release
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            packages: write
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Log in to the Container registry
+              uses: docker/login-action@v3
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Extract metadata (tags, labels) for API
+              id: meta-api
+              uses: docker/metadata-action@v5
+              with:
+                  images: ghcr.io/${{ github.repository }}/canary-api
+
+            - name: Build and push API Docker image
+              uses: docker/build-push-action@v5
+              with:
+                  context: .
+                  file: Dockerfile.api
+                  push: true
+                  tags: ${{ steps.meta-api.outputs.tags }}
+                  labels: ${{ steps.meta-api.outputs.labels }}
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
+
+            - name: Extract metadata (tags, labels) for Dashboard
+              id: meta-dash
+              uses: docker/metadata-action@v5
+              with:
+                  images: ghcr.io/${{ github.repository }}/canary-dashboard
+
+            - name: Build and push Dashboard Docker image
+              uses: docker/build-push-action@v5
+              with:
+                  context: ./dashboard
+                  file: ./dashboard/Dockerfile
+                  push: true
+                  tags: ${{ steps.meta-dash.outputs.tags }}
+                  labels: ${{ steps.meta-dash.outputs.labels }}
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
