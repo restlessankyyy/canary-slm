@@ -106,3 +106,19 @@ jobs:
               assert os.path.exists(f'{d}/best_model.pt')
           print('✅ Training smoke test passed')
           "
+
+      - name: Setup Node.js (Analyst Terminal)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Next.js dependencies
+        working-directory: ./dashboard
+        run: npm install
+
+      - name: Build Next.js Dashboard
+        working-directory: ./dashboard
+        run: npm run build
+
+      - name: Verify Docker Compose Build
+        run: docker-compose build
