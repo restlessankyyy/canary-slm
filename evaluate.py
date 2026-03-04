@@ -22,11 +22,10 @@ from sklearn.metrics import (
     confusion_matrix,
     roc_auc_score,
     precision_recall_curve,
-    f1_score,
     average_precision_score,
 )
 
-from config import Config, get_default_config
+from config import get_default_config
 from model import FraudTransformer
 from data.dataset import FraudDataset
 from data.tokenizer import get_tokenizer
@@ -108,7 +107,7 @@ def evaluate(
     auc_roc = roc_auc_score(all_labels, all_probs)
     auc_pr  = average_precision_score(all_labels, all_probs)
 
-    print(f"  Confusion Matrix:")
+    print("  Confusion Matrix:")
     print(f"  {'':20} Predicted Legit  Predicted Fraud")
     print(f"  {'Actual Legit':20} {tn:>15,}  {fp:>15,}")
     print(f"  {'Actual Fraud':20} {fn:>15,}  {tp:>15,}")
@@ -120,7 +119,7 @@ def evaluate(
     print(f"  True Positive Rate:  {tp/(tp+fn):.4f} ({tp:,} fraud caught)")
 
     # ── Optimal threshold sweep ───────────────────────────────────────────────
-    print(f"\n  Threshold Sweep (maximize F1):")
+    print("\n  Threshold Sweep (maximize F1):")
     prec_arr, rec_arr, thresh_arr = precision_recall_curve(all_labels, all_probs)
     # Compute F1 at each threshold
     f1_arr = 2 * (prec_arr * rec_arr) / (prec_arr + rec_arr + 1e-8)

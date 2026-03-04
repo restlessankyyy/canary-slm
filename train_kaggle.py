@@ -21,29 +21,19 @@ import os
 import sys
 import time
 import argparse
-import random
 import json
-from typing import Optional
 
-import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torch.optim import AdamW
 from torch.optim.lr_scheduler import CosineAnnealingLR, LinearLR, SequentialLR
 
-try:
-    from tqdm import tqdm
-    TQDM = True
-except ImportError:
-    TQDM = False
 
-from sklearn.metrics import f1_score, precision_score, recall_score, roc_auc_score
 
-from config import Config, ModelConfig, TrainingConfig, get_default_config
+from config import Config, get_default_config
 from model import FraudTransformer
 from data.kaggle_dataset import build_kaggle_dataloaders, build_kaggle_tokenizer
-from train import set_seed, compute_metrics, run_epoch   # reuse helpers
+from train import set_seed, run_epoch   # reuse helpers
 
 
 def build_kaggle_config(args) -> Config:
@@ -80,9 +70,12 @@ def train_kaggle(args):
     # ── Device ───────────────────────────────────────────────────────────────
     device_str = cfg.training.device
     if device_str == "auto":
-        if torch.cuda.is_available():             device = torch.device("cuda")
-        elif torch.backends.mps.is_available():   device = torch.device("mps")
-        else:                                     device = torch.device("cpu")
+        if torch.cuda.is_available():
+            device = torch.device("cuda")
+        elif torch.backends.mps.is_available():
+            device = torch.device("mps")
+        else:
+            device = torch.device("cpu")
     else:
         device = torch.device(device_str)
     print(f"\n🖥️  Device: {device}")

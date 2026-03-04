@@ -10,12 +10,10 @@ Features:
 """
 
 import os
-import sys
 import time
 import argparse
 import random
 import json
-from pathlib import Path
 from typing import Dict, Tuple, Optional
 
 import numpy as np
@@ -37,7 +35,6 @@ from sklearn.metrics import f1_score, precision_score, recall_score, roc_auc_sco
 from config import Config, get_default_config
 from model import FraudTransformer
 from data.dataset import build_dataloaders
-from data.generate_synthetic import generate_dataset
 
 
 # ── Reproducibility ──────────────────────────────────────────────────────────
@@ -131,9 +128,12 @@ def train(cfg: Config, resume: Optional[str] = None):
 
     # ── Device ───────────────────────────────────────────────────────────────
     if cfg.training.device == "auto":
-        if torch.cuda.is_available():    device = torch.device("cuda")
-        elif torch.backends.mps.is_available(): device = torch.device("mps")
-        else:                            device = torch.device("cpu")
+        if torch.cuda.is_available():
+            device = torch.device("cuda")
+        elif torch.backends.mps.is_available():
+            device = torch.device("mps")
+        else:
+            device = torch.device("cpu")
     else:
         device = torch.device(cfg.training.device)
     print(f"\n🖥️  Device: {device}")
@@ -143,7 +143,7 @@ def train(cfg: Config, resume: Optional[str] = None):
     for split in ["train", "val", "test"]:
         path = os.path.join(cfg.training.data_dir, f"{split}.csv")
         if not os.path.exists(path):
-            print(f"\n📊 Dataset not found — generating synthetic data...")
+            print("\n📊 Dataset not found — generating synthetic data...")
             from data.generate_synthetic import main as gen_main
             import sys as _sys
             old_argv = _sys.argv
@@ -321,11 +321,16 @@ def parse_args() -> Config:
     args = parser.parse_args()
 
     cfg = get_default_config()
-    if args.epochs:     cfg.training.num_epochs    = args.epochs
-    if args.batch_size: cfg.training.batch_size    = args.batch_size
-    if args.lr:         cfg.training.learning_rate = args.lr
-    if args.device:     cfg.training.device        = args.device
-    if args.data_dir:   cfg.training.data_dir      = args.data_dir
+    if args.epochs:
+        cfg.training.num_epochs = args.epochs
+    if args.batch_size:
+        cfg.training.batch_size = args.batch_size
+    if args.lr:
+        cfg.training.learning_rate = args.lr
+    if args.device:
+        cfg.training.device = args.device
+    if args.data_dir:
+        cfg.training.data_dir = args.data_dir
     return cfg, args.resume
 
 

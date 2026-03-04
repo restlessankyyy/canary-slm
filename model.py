@@ -14,6 +14,8 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from typing import Optional
+
 from config import ModelConfig
 
 
@@ -227,9 +229,6 @@ class FraudTransformer(nn.Module):
         ]
         return "\n".join(lines)
 
-
-# ── Allow Optional import at module level ────────────────────────────────────
-from typing import Optional
 
 
 if __name__ == "__main__":

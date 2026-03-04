@@ -18,7 +18,7 @@ df = kagglehub.dataset_load(
 print(f"\n✅ Loaded {len(df):,} rows, {len(df.columns)} columns")
 print(f"   Columns: {list(df.columns)}")
 print(f"   Fraud:   {df['Class'].sum():,} ({100*df['Class'].mean():.3f}%)")
-print(f"\nFirst 3 rows:")
+print("\nFirst 3 rows:")
 print(df.head(3).to_string())
 
 # Save to data/creditcard.csv

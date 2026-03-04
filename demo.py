@@ -11,10 +11,7 @@ import sys
 # ── Try rich for pretty output, fall back to plain print ────────────────────
 try:
     from rich.console import Console
-    from rich.table import Table
     from rich.panel import Panel
-    from rich.text import Text
-    from rich import box
     RICH = True
     console = Console()
 except ImportError:

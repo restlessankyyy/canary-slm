@@ -6,10 +6,7 @@ for use with DataLoader.
 """
 
 import os
-import ast
-import json
 import torch
-import numpy as np
 import pandas as pd
 from torch.utils.data import Dataset, DataLoader, WeightedRandomSampler
 from typing import Optional, Tuple, Dict
@@ -173,7 +170,8 @@ def build_dataloaders(
 if __name__ == "__main__":
     # Quick sanity check
     from data.generate_synthetic import generate_dataset
-    import tempfile, os
+    import tempfile
+    import os
 
     print("Generating mini dataset for sanity check...")
     with tempfile.TemporaryDirectory() as tmpdir:

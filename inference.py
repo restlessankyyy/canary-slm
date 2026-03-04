@@ -9,8 +9,7 @@ Provides a clean API for:
 """
 
 import os
-import json
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple
 
 import torch
 import torch.nn.functional as F
@@ -97,9 +96,12 @@ class FraudDetector:
         tokenizer = get_tokenizer(tokenizer_path if os.path.exists(tokenizer_path) else None)
 
         if device is None:
-            if torch.cuda.is_available():          dev = torch.device("cuda")
-            elif torch.backends.mps.is_available(): dev = torch.device("mps")
-            else:                                   dev = torch.device("cpu")
+            if torch.cuda.is_available():
+                dev = torch.device("cuda")
+            elif torch.backends.mps.is_available():
+                dev = torch.device("mps")
+            else:
+                dev = torch.device("cpu")
         else:
             dev = torch.device(device)
 

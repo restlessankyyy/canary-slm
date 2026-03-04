@@ -215,11 +215,16 @@ class FinancialTokenizer:
         return "AMT:100k+"
 
     def _time_token(self, hour: int) -> str:
-        if hour < 6:   return "TIME:EARLY_MORNING"
-        if hour < 11:  return "TIME:MORNING"
-        if hour < 14:  return "TIME:MIDDAY"
-        if hour < 18:  return "TIME:AFTERNOON"
-        if hour < 22:  return "TIME:EVENING"
+        if hour < 6:
+            return "TIME:EARLY_MORNING"
+        if hour < 11:
+            return "TIME:MORNING"
+        if hour < 14:
+            return "TIME:MIDDAY"
+        if hour < 18:
+            return "TIME:AFTERNOON"
+        if hour < 22:
+            return "TIME:EVENING"
         return "TIME:LATE_NIGHT"
 
     def _country_token(self, country: str, is_domestic: Optional[bool]) -> str:

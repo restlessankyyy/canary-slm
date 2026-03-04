@@ -8,13 +8,12 @@ Tokenizes rows using an extended vocabulary that includes PCA-bin tokens
 
 import os
 import torch
-import numpy as np
 import pandas as pd
 from torch.utils.data import Dataset, DataLoader, WeightedRandomSampler
 from typing import Optional, Tuple, List
 
-from data.tokenizer import FinancialTokenizer, _build_vocab, get_tokenizer
-from data.preprocess_kaggle import build_kaggle_vocab_extension, PCA_FEATURES, PCA_BINS
+from data.tokenizer import FinancialTokenizer, _build_vocab
+from data.preprocess_kaggle import build_kaggle_vocab_extension
 
 
 # ── Extended tokenizer ────────────────────────────────────────────────────────

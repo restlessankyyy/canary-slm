@@ -4,14 +4,13 @@ config.py — Model & Training Configuration for Finance Fraud Detection SLM
 """
 
 from dataclasses import dataclass, field
-from typing import Optional
 import os
 
 
 @dataclass
 class ModelConfig:
     """Transformer Encoder architecture hyperparameters.
-    
+
     Targeting ~1M total parameters:
       Embedding:       vocab_size(512) × d_model(128)     = 65,536
       Pos Encoding:    seq_len(64)    × d_model(128)      = 8,192

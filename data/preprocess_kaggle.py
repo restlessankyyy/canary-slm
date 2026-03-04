@@ -40,12 +40,17 @@ def time_to_bucket(seconds: float) -> int:
     an approximate hour-of-day (mod 86400) then time bucket index 0–5.
     """
     hour = int(seconds % 86400 / 3600)
-    if hour < 6:   return 0   # EARLY_MORNING
-    if hour < 11:  return 1   # MORNING
-    if hour < 14:  return 2   # MIDDAY
-    if hour < 18:  return 3   # AFTERNOON
-    if hour < 22:  return 4   # EVENING
-    return 5                  # LATE_NIGHT
+    if hour < 6:
+        return 0   # EARLY_MORNING
+    if hour < 11:
+        return 1   # MORNING
+    if hour < 14:
+        return 2   # MIDDAY
+    if hour < 18:
+        return 3   # AFTERNOON
+    if hour < 22:
+        return 4   # EVENING
+    return 5       # LATE_NIGHT
 
 TIME_BUCKET_NAMES = [
     "EARLY_MORNING", "MORNING", "MIDDAY", "AFTERNOON", "EVENING", "LATE_NIGHT"
