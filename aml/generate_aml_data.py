@@ -24,7 +24,7 @@ import random
 import argparse
 import numpy as np
 import pandas as pd
-from typing import List, Dict, Tuple
+from typing import List, Dict
 
 random.seed(42)
 np.random.seed(42)

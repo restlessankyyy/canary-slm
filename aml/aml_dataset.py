@@ -16,10 +16,9 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import torch
-import numpy as np
 import pandas as pd
 from torch.utils.data import Dataset, DataLoader, WeightedRandomSampler
-from typing import List, Tuple, Dict, Optional
+from typing import List, Tuple
 
 SEQ_LEN = 30   # transactions per account
 
@@ -93,22 +92,33 @@ def _country_id(country: str) -> int:
 
 def _time_id(hour: int) -> int:
     h = int(hour)
-    if h < 6:   return TIME_TOKENS["LATE_NIGHT"]
-    if h < 9:   return TIME_TOKENS["EARLY_MORNING"]
-    if h < 12:  return TIME_TOKENS["MORNING"]
-    if h < 14:  return TIME_TOKENS["MIDDAY"]
-    if h < 18:  return TIME_TOKENS["AFTERNOON"]
-    if h < 22:  return TIME_TOKENS["EVENING"]
+    if h < 6:
+        return TIME_TOKENS["LATE_NIGHT"]
+    if h < 9:
+        return TIME_TOKENS["EARLY_MORNING"]
+    if h < 12:
+        return TIME_TOKENS["MORNING"]
+    if h < 14:
+        return TIME_TOKENS["MIDDAY"]
+    if h < 18:
+        return TIME_TOKENS["AFTERNOON"]
+    if h < 22:
+        return TIME_TOKENS["EVENING"]
     return TIME_TOKENS["NIGHT"]
 
 
 def _gap_id(gap_hours: float) -> int:
     g = float(gap_hours)
-    if g < 2:    return GAP_TOKENS["GAP:RAPID"]
-    if g < 24:   return GAP_TOKENS["GAP:SAME_DAY"]
-    if g < 72:   return GAP_TOKENS["GAP:SHORT"]
-    if g < 336:  return GAP_TOKENS["GAP:NORMAL"]
-    if g < 2160: return GAP_TOKENS["GAP:LONG"]
+    if g < 2:
+        return GAP_TOKENS["GAP:RAPID"]
+    if g < 24:
+        return GAP_TOKENS["GAP:SAME_DAY"]
+    if g < 72:
+        return GAP_TOKENS["GAP:SHORT"]
+    if g < 336:
+        return GAP_TOKENS["GAP:NORMAL"]
+    if g < 2160:
+        return GAP_TOKENS["GAP:LONG"]
     return GAP_TOKENS["GAP:DORMANT"]
 
 

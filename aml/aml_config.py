@@ -8,10 +8,11 @@ AML differs from fraud detection in one key way:
 We reuse ModelConfig / TrainingConfig from config.py with overrides.
 """
 
-import sys, os
+import sys
+import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from config import ModelConfig, TrainingConfig
 
 
@@ -53,7 +54,6 @@ class AMLTrainingConfig(TrainingConfig):
 
 
 def get_aml_config():
-    from dataclasses import dataclass
 
     class AMLConfig:
         def __init__(self):

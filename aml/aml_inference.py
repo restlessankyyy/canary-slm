@@ -14,10 +14,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import torch
 import torch.nn.functional as F
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional
 
 from model import FraudTransformer
-from aml.aml_config import AMLModelConfig, get_aml_config
+from aml.aml_config import get_aml_config
 from aml.aml_dataset import encode_account
 import pandas as pd
 
