@@ -45,7 +45,7 @@ git clone https://github.com/restlessankyyy/canary-slm
 cd canary-slm
 
 # Spin up the FastAPI Backend and Next.js Analyst Terminal
-docker-compose up --build
+docker compose up --build
 ```
 * **Dashboard (UI)**: [http://localhost:3000](http://localhost:3000)
 * **API Swagger Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
