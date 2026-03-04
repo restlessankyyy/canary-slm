@@ -14,6 +14,10 @@ Transaction → [CLS][AMT:1k-2k][MCC:CRYPTO][CTRY:FOREIGN][TIME:EARLY_MORNING][V
                          🚨 CRITICAL RISK — fraud_prob: 0.97
 ```
 
+**Two Core Modules:**
+1. **Fraud Detection** (Single Transaction Scoring)
+2. **AML Detection** (30-Transaction Account Sequence Scoring)
+
 ---
 
 ## 🏗️ Architecture
@@ -70,8 +74,11 @@ python train_kaggle.py --epochs 20
 # Evaluate
 python evaluate.py --checkpoint checkpoints/best_model.pt
 
-# Interactive demo
-python demo.py
+# Option Option C: Anti-Money Laundering (AML) Model
+python aml/train_aml.py --epochs 20
+
+# Evaluate AML
+python aml/evaluate_aml.py --checkpoint checkpoints/aml_best.pt  # if available
 ```
 
 ---
@@ -96,6 +103,12 @@ canary-slm/
 │   ├── dataset.py             # PyTorch Dataset + WeightedRandomSampler
 │   ├── preprocess_kaggle.py   # V1–V28 quantile binner
 │   └── kaggle_dataset.py      # Extended tokenizer + KaggleFraudDataset
+├── aml/                       # Anti-Money Laundering Module
+│   ├── aml_config.py          # max_seq_len=160, vocab=600
+│   ├── generate_aml_data.py   # 5 synthetic AML schemes
+│   ├── aml_dataset.py         # 151-token account sequence encoder
+│   ├── train_aml.py           # AML training script
+│   └── aml_inference.py       # AMLDetector + signal extraction
 └── .github/workflows/
     ├── ci.yml                 # Lint + tests on every push
     └── train.yml              # On-demand training workflow
@@ -114,6 +127,21 @@ canary-slm/
 | **Money Mule** | Crypto/transfer, extreme velocity, Tor/VPN |
 
 For the real Kaggle dataset, V1–V28 PCA features are binned into 5 quantile-based tokens per feature (140 additional tokens).
+
+---
+
+## 🕵️‍♂️ Anti-Money Laundering (AML) Schemes
+
+The `aml/` module trains the Transformer on **30-transaction sequences** per account (160 max tokens).
+
+| Scheme | Key Pattern Detected |
+|---|---|
+| **Structuring** | 8+ deposits strictly between $8k–$9.9k (evading $10k reporting limits) |
+| **Layering** | Rapid `IN` → `OUT` → `IN` chains across multiple countries |
+| **Smurfing** | One large incoming deposit split into many small outgoing transfers |
+| **Dormant burst** | Account quiet/dormant for months, then sudden burst of large activity |
+| **Round-tripping** | Funds exported and returned via a different route within days |
+
 
 ---
 
