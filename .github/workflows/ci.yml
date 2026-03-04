@@ -1,0 +1,108 @@
+name: CI — CANARY SLM
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    name: Lint & Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest ruff
+
+      - name: Lint with ruff
+        run: ruff check . --select E,F,W --ignore E501
+
+      - name: Verify model parameter count
+        run: |
+          python3 -c "
+          from model import FraudTransformer
+          from config import ModelConfig
+          m = FraudTransformer(ModelConfig())
+          total = sum(p.numel() for p in m.parameters())
+          print(f'CANARY total params: {total:,}')
+          assert 500_000 <= total <= 1_200_000, f'Expected ~1M params, got {total}'
+          print('✅ Parameter count check passed')
+          "
+
+      - name: Verify tokenizer vocab
+        run: |
+          python3 -c "
+          from data.tokenizer import FinancialTokenizer
+          tok = FinancialTokenizer()
+          assert tok.vocab_size > 100, 'Vocab too small'
+          ids, mask = tok.encode({'amount': 500, 'merchant_cat': 'GROCERY', 'is_domestic': True,
+                                   'hour': 10, 'day_of_week': 1, 'channel': 'POS_CHIP',
+                                   'currency': 'USD', 'velocity': 'NORMAL', 'flags': []})
+          assert ids[0] == tok.CLS_ID, '[CLS] must be first token'
+          assert len(ids) == 64
+          print(f'✅ Tokenizer OK (vocab={tok.vocab_size}, seq_len={len(ids)})')
+          "
+
+      - name: Verify Kaggle tokenizer
+        run: |
+          python3 -c "
+          from data.kaggle_dataset import build_kaggle_tokenizer
+          tok = build_kaggle_tokenizer()
+          assert tok.vocab_size >= 200
+          print(f'✅ Kaggle tokenizer OK (vocab={tok.vocab_size})')
+          "
+
+      - name: Smoke-test forward pass
+        run: |
+          python3 -c "
+          import torch
+          from model import FraudTransformer
+          from config import ModelConfig
+          m = FraudTransformer(ModelConfig())
+          m.eval()
+          ids  = torch.randint(0, 512, (4, 64))
+          mask = torch.ones(4, 64, dtype=torch.long)
+          with torch.no_grad():
+              logits = m(ids, mask)
+          assert logits.shape == (4, 2), f'Bad output shape: {logits.shape}'
+          probs = torch.softmax(logits, dim=-1)
+          assert (probs >= 0).all() and (probs <= 1).all()
+          print(f'✅ Forward pass OK: {logits.shape}')
+          "
+
+      - name: Quick synthetic data + training smoke test
+        run: |
+          python3 -c "
+          import os, tempfile
+          from data.generate_synthetic import generate_dataset
+          with tempfile.TemporaryDirectory() as d:
+              for split in ['train','val','test']:
+                  generate_dataset(200, fraud_ratio=0.1, seed=42).to_csv(f'{d}/{split}.csv', index=False)
+              import sys; sys.argv = ['train.py','--epochs','1','--batch-size','32','--device','cpu','--data-dir', d]
+              from config import get_default_config
+              from train import train
+              cfg = get_default_config()
+              cfg.training.num_epochs = 1
+              cfg.training.batch_size = 32
+              cfg.training.device = 'cpu'
+              cfg.training.data_dir = d
+              cfg.training.checkpoint_dir = d
+              cfg.training.log_dir = d
+              cfg.training.num_workers = 0
+              train(cfg)
+              assert os.path.exists(f'{d}/best_model.pt')
+          print('✅ Training smoke test passed')
+          "

@@ -1,0 +1,66 @@
+name: Train — CANARY SLM
+
+on:
+    # Run manually from GitHub Actions UI
+    workflow_dispatch:
+        inputs:
+            epochs:
+                description: "Number of training epochs"
+                required: false
+                default: "5"
+            dataset:
+                description: "Dataset to use: synthetic or kaggle"
+                required: false
+                default: "synthetic"
+
+jobs:
+    train:
+        name: Train CANARY on ${{ github.event.inputs.dataset }} data
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Set up Python 3.11
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.11"
+                  cache: pip
+
+            - name: Install dependencies
+              run: |
+                  pip install --upgrade pip
+                  pip install -r requirements.txt
+
+            - name: Generate synthetic data
+              if: ${{ github.event.inputs.dataset == 'synthetic' }}
+              run: |
+                  python3 data/generate_synthetic.py \
+                    --n-train 50000 \
+                    --n-val   5000  \
+                    --n-test  5000  \
+                    --fraud-ratio 0.05
+
+            - name: Train CANARY (synthetic)
+              if: ${{ github.event.inputs.dataset == 'synthetic' }}
+              run: |
+                  python3 train.py \
+                    --epochs ${{ github.event.inputs.epochs }} \
+                    --batch-size 256 \
+                    --device cpu
+
+            - name: Upload checkpoint
+              uses: actions/upload-artifact@v4
+              with:
+                  name: canary-checkpoint-${{ github.run_id }}
+                  path: |
+                      checkpoints/best_model.pt
+                      logs/train_history.json
+                  retention-days: 30
+
+            - name: Evaluate
+              run: |
+                  python3 evaluate.py \
+                    --checkpoint checkpoints/best_model.pt \
+                    --data data/test.csv

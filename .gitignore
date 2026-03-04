@@ -1,0 +1,50 @@
+# ── Data ────────────────────────────────────────────────
+data/*.csv
+data/*.json
+data/*.parquet
+data/creditcard.csv
+
+# ── Checkpoints & logs ───────────────────────────────────
+checkpoints/
+logs/
+
+# ── Python ────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+*.pyo
+*.pyd
+.Python
+venv/
+.venv/
+env/
+ENV/
+
+# ── Jupyter ───────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb
+
+# ── Editors ───────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# ── Kaggle ───────────────────────────────────────────────
+*.kaggle.json
+kaggle.json
+
+# ── Model artifacts ───────────────────────────────────────
+*.pt
+*.pth
+*.onnx
+
+# ── Test/coverage ─────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
