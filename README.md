@@ -1,26 +1,56 @@
-# 🐦 CANARY
+# 🐦 CANARY Enterprise Banking Suite
 ### Contextual Anomaly Network for Anomaly Recognition & analYsis
 
-> *Like a canary in a coal mine — a ~600K parameter Transformer that detects financial fraud before it spreads.*
+> *Like a canary in a coal mine — a high-performance Financial AI Suite that detects fraud and money laundering before it impacts the bottom line.*
 
 [![CI](https://github.com/restlessankyyy/canary-slm/actions/workflows/ci.yml/badge.svg)](https://github.com/restlessankyyy/canary-slm/actions/workflows/ci.yml)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
-```
-Transaction → [CLS][AMT:1k-2k][MCC:CRYPTO][CTRY:FOREIGN][TIME:EARLY_MORNING][VEL:EXTREME]...
-                                         ↓ CANARY
-                         🚨 CRITICAL RISK — fraud_prob: 0.97
-```
-
-**Two Core Modules:**
-1. **Fraud Detection** (Single Transaction Scoring)
-2. **AML Detection** (30-Transaction Account Sequence Scoring)
+[![Next.js](https://img.shields.io/badge/Next.js-black?logo=next.js&logoColor=white)](https://nextjs.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-005571?logo=fastapi)](https://fastapi.tiangolo.com/)
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ Minimum Viable Product (MVP) Architecture
+
+CANARY is not just an ML model—it is a full-stack, end-to-end **Enterprise Banking Suite** designed to process live transaction streams. The suite operates on a 4-layer architecture:
+
+1. **API Gateway (FastAPI)**: A high-throughput Python API (`api/main.py`) exposing asynchronous endpoints (`POST /v1/score/fraud` and `POST /v1/score/aml`) for ingestion by downstream core banking systems.
+2. **Business Rules Engine**: A deterministic layer (`api/rules.py`) that executes in microseconds *before* ML inference. It manages OFAC sanctions, VIP allow-lists, and hard velocity limits to prevent unnecessary compute and ensure compliance.
+3. **Machine Learning Core**: A ~600K parameter PyTorch Transformer model trained specifically on sequence tabular financial data for both Single-Transaction Fraud and Multi-Sequence Anti-Money Laundering (AML).
+4. **Operations Dashboard (Next.js)**: A standalone, functional Analyst Terminal (`dashboard/`) built with React and TailwindCSS. It provides an expert-level UX with a Priority Intercept Queue for human review and a full Live Telemetry feed.
+
+---
+
+## ⚙️ Ways of Working: The Live Data Flow
+
+When a transaction hits the CANARY API Gateway, it flows through the following pipeline:
+
+1. **Ingestion**: Transaction JSON is parsed and validated by Pydantic.
+2. **Deterministic Rules Evaluation**: The `Business Rules Engine` inspects the transaction. If the country is embargoed (e.g., KP) or the user is on a VIP Allow-list, the system makes an immediate routing decision and bypasses the AI.
+3. **Feature Tokenization**: If no rules are triggered, the transaction attributes (Amount, Time, Geo, Merchant Category, Device Flags) are discretized and mapped into a custom 512-token financial vocabulary.
+4. **Transformer Inference**: The `[CLS]` token from the tokenized sequence is fed through 4 Transformer encoder layers to predict a continuous risk probability.
+5. **Action Generation**: The system synthesizes the final rules decision with the ML confidence score, assigns a Risk Label (`LEGITIMATE`, `REVIEW`, `CRITICAL RISK`), extracts human-readable Explanations (`[FOREIGN_IP]`, `[EXTREME_VELOCITY]`), and returns the payload to the dashboard.
+
+---
+
+## 🚀 Quick Start (Enterprise Suite via Docker)
+
+The easiest way to run the full MVP (API + Next.js Dashboard) is via Docker Compose.
+
+```bash
+git clone https://github.com/restlessankyyy/canary-slm
+cd canary-slm
+
+# Spin up the FastAPI Backend and Next.js Analyst Terminal
+docker-compose up --build
+```
+* **Dashboard (UI)**: [http://localhost:3000](http://localhost:3000)
+* **API Swagger Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+---
+
+## 🧠 ML Architecture: The CANARY Core
 
 ```
 Tokenized Transaction (max 64 tokens)
@@ -44,145 +74,118 @@ Token Embedding (vocab=512) + Learned Positional Encoding
    P(fraud) [0–1]
 ```
 
-### Parameter Budget
+**Total Parameters: ~612K** (Extremely lightweight for millisecond-latency inference).
 
-| Component | Params |
-|:---|---:|
-| Token Embedding | 65,536 |
-| Positional Encoding | 8,192 |
-| Transformer Encoder ×4 | 530,176 |
-| Classification Head | 8,386 |
-| **Total** | **~612K** |
+### Training Data Setup (Local Development)
 
----
-
-## 🚀 Quick Start
-
+If you wish to train the models locally outside of Docker:
 ```bash
-git clone https://github.com/restlessankyyy/canary-slm
-cd canary-slm
 pip install -r requirements.txt
 
-# Option A: Synthetic data (no download needed)
+# 1. Train Synthetic Fraud Model
 python train.py --epochs 20
 
-# Option B: Real Kaggle data (~284K real transactions)
-python download_kaggle_data.py   # downloads via kagglehub
+# 2. Train Real-World Kaggle Fraud Model (284k transactions)
+python download_kaggle_data.py
 python setup_kaggle.py --csv data/creditcard.csv
 python train_kaggle.py --epochs 20
 
-# Evaluate
-python evaluate.py --checkpoint checkpoints/best_model.pt
-
-# Option Option C: Anti-Money Laundering (AML) Model
+# 3. Train Anti-Money Laundering (AML) Model
 python aml/train_aml.py --epochs 20
-
-# Evaluate AML
-python aml/evaluate_aml.py --checkpoint checkpoints/aml_best.pt  # if available
 ```
 
 ---
 
-## 📂 Project Structure
+## ⚗️ Threat Vectors Detected
+
+### 1. Single-Transaction Fraud Profiles
+* **Card Testing**: Micro amounts (<$1), rapid succession, new device.
+* **Account Takeover**: Large transfers, foreign country, late night.
+* **CNP Fraud**: Online, billing mismatch, foreign IP.
+* **Money Mule**: Crypto/wire transfers, extreme velocity, Tor/VPN.
+
+### 2. Multi-Sequence AML Schemes (Account-level scoring)
+The `aml/` module trains on sequences of 30 transactions per account to find hidden temporal behaviors:
+* **Structuring**: Repeated deposits strictly between $8k–$9.9k (evading $10k SAR limits).
+* **Layering**: Rapid `IN` → `OUT` → `IN` chains across multiple countries.
+* **Smurfing**: One large incoming deposit split into many small outgoing transfers.
+* **Dormant burst**: Account quiet for months, then experiences a sudden burst of high-value activity.
+* **Round-tripping**: Funds exported and returned via overlapping nested routes within days.
+
+---
+
+## 🔌 API Gateway Consumption Example
+
+Downstream systems can consume the scoring API in real-time:
+
+```bash
+curl -X 'POST' \
+  'http://localhost:8000/v1/score/fraud' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "transaction_id": "txn_8rjf92",
+  "customer_id": "CUST_99342",
+  "amount": 25000.0,
+  "merchant_cat": "CRYPTO",
+  "country": "NG",
+  "is_domestic": false,
+  "hour": 3,
+  "day_of_week": 6,
+  "channel": "ONLINE",
+  "currency": "USD",
+  "velocity": "EXTREME",
+  "flags": ["NEW_DEVICE", "TOR_VPN", "FOREIGN_IP"]
+}'
+```
+
+**Response Payload:**
+```json
+{
+  "transaction_id": "txn_8rjf92",
+  "fraud_probability": 0.9841,
+  "risk_label": "🚨 CRITICAL RISK",
+  "action": "Block immediately",
+  "decision_source": "ML_MODEL",
+  "risk_factors": [
+    "AMT:20K-50K",
+    "MCC:CRYPTO",
+    "CTRY:FOREIGN",
+    "TIME:EARLY_MORNING",
+    "VEL:EXTREME",
+    "FLAG:NEW_DEVICE",
+    "FLAG:TOR_VPN",
+    "FLAG:FOREIGN_IP"
+  ],
+  "processing_time_ms": 6.2
+}
+```
+
+---
+
+## 📂 Project Repository Structure
 
 ```
 canary-slm/
+├── api/                       # Enterprise Gateway
+│   ├── main.py                # FastAPI endpoints
+│   └── rules.py               # Deterministic Business Rules Engine
+├── dashboard/                 # Next.js Analyst Operations Terminal
+│   ├── src/app/page.tsx       # Live Telemetry UI
+│   └── Dockerfile             # Standalone Next.js build
+├── data/                      # Data engineering pipeline
+│   ├── tokenizer.py           # 512-token financial domain vocabulary
+│   ├── generate_synthetic.py  # 5-profile fraud data generator
+│   └── dataset.py             # PyTorch Dataset + WeightedRandomSampler
+├── aml/                       # Anti-Money Laundering Module
+│   ├── aml_dataset.py         # 151-token account sequence encoder
+│   └── aml_inference.py       # Sequence-level ML detection API
 ├── model.py                   # CANARY Transformer Encoder
 ├── config.py                  # Model & training config
 ├── train.py                   # Training loop (synthetic data)
-├── train_kaggle.py            # Training on real Kaggle data
-├── evaluate.py                # Metrics: F1, AUC-ROC, confusion matrix
-├── inference.py               # FraudDetector inference API
-├── demo.py                    # Interactive CLI demo
-├── download_kaggle_data.py    # Download creditcard.csv via kagglehub
-├── setup_kaggle.py            # Preprocess Kaggle CSV
-├── requirements.txt
-├── data/
-│   ├── tokenizer.py           # 512-token financial domain vocabulary
-│   ├── generate_synthetic.py  # 5-profile fraud data generator
-│   ├── dataset.py             # PyTorch Dataset + WeightedRandomSampler
-│   ├── preprocess_kaggle.py   # V1–V28 quantile binner
-│   └── kaggle_dataset.py      # Extended tokenizer + KaggleFraudDataset
-├── aml/                       # Anti-Money Laundering Module
-│   ├── aml_config.py          # max_seq_len=160, vocab=600
-│   ├── generate_aml_data.py   # 5 synthetic AML schemes
-│   ├── aml_dataset.py         # 151-token account sequence encoder
-│   ├── train_aml.py           # AML training script
-│   └── aml_inference.py       # AMLDetector + signal extraction
-└── .github/workflows/
-    ├── ci.yml                 # Lint + tests on every push
-    └── train.yml              # On-demand training workflow
+├── Dockerfile.api             # FastAPI Dockerfile
+├── docker-compose.yml         # Full suite orchestrator
+└── .github/workflows/         # CI/CD (Linting + Model Training)
 ```
-
----
-
-## 🔬 Data: 5 Fraud Profiles (Synthetic)
-
-| Profile | Key Signals |
-|---|---|
-| **Card Testing** | Micro amounts (<$1), rapid succession, new device |
-| **Account Takeover** | $1.5K–$15K, foreign country, late night |
-| **CNP Fraud** | Online, billing mismatch, foreign IP |
-| **ATM Skimming** | Cloned card, foreign ATM, geo-impossible |
-| **Money Mule** | Crypto/transfer, extreme velocity, Tor/VPN |
-
-For the real Kaggle dataset, V1–V28 PCA features are binned into 5 quantile-based tokens per feature (140 additional tokens).
-
----
-
-## 🕵️‍♂️ Anti-Money Laundering (AML) Schemes
-
-The `aml/` module trains the Transformer on **30-transaction sequences** per account (160 max tokens).
-
-| Scheme | Key Pattern Detected |
-|---|---|
-| **Structuring** | 8+ deposits strictly between $8k–$9.9k (evading $10k reporting limits) |
-| **Layering** | Rapid `IN` → `OUT` → `IN` chains across multiple countries |
-| **Smurfing** | One large incoming deposit split into many small outgoing transfers |
-| **Dormant burst** | Account quiet/dormant for months, then sudden burst of large activity |
-| **Round-tripping** | Funds exported and returned via a different route within days |
-
-
----
-
-## 🔌 Inference API
-
-```python
-from inference import FraudDetector
-
-detector = FraudDetector.from_checkpoint("checkpoints/best_model.pt")
-
-result = detector.predict({
-    "amount": 9999.99,
-    "merchant_cat": "CRYPTO",
-    "country": "NG",
-    "is_domestic": False,
-    "hour": 3,
-    "day_of_week": 6,
-    "channel": "ONLINE",
-    "currency": "CRYPTO_BTC",
-    "velocity": "EXTREME",
-    "flags": ["NEW_DEVICE", "TOR_VPN", "FOREIGN_IP"],
-})
-
-print(result["risk_label"])         # 🚨 CRITICAL RISK
-print(result["fraud_probability"])  # 0.97
-print(result["action"])             # Block immediately
-print(result["risk_factors"])       # ['CTRY:FOREIGN', 'VEL:EXTREME', ...]
-```
-
----
-
-## 📈 Training Hyperparameters
-
-| Param | Value |
-|---|---|
-| Optimizer | AdamW (lr=3e-4, wd=1e-2) |
-| LR Schedule | Linear warmup (2 ep) → Cosine decay |
-| Loss | Weighted Cross-Entropy (fraud weight=10× synthetic / 150× Kaggle) |
-| Sampler | WeightedRandomSampler |
-| Batch size | 256 |
-| Grad clip | 1.0 |
 
 ---
 
