@@ -20,6 +20,8 @@ CANARY is not just an ML model—it is a full-stack, end-to-end **Enterprise Ban
 3. **Machine Learning Core**: A ~600K parameter PyTorch Transformer model trained specifically on sequence tabular financial data for both Single-Transaction Fraud and Multi-Sequence Anti-Money Laundering (AML).
 4. **Operations Dashboard (Next.js)**: A standalone, functional Analyst Terminal (`dashboard/`) built with React and TailwindCSS. It provides an expert-level UX with a Priority Intercept Queue for human review and a full Live Telemetry feed.
 
+![CANARY Expert Terminal](assets/dashboard_terminal.png)
+
 ---
 
 ## ⚙️ Ways of Working: The Live Data Flow
