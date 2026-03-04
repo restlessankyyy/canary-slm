@@ -3,7 +3,7 @@
 
 > *Like a canary in a coal mine — a ~600K parameter Transformer that detects financial fraud before it spreads.*
 
-[![CI](https://github.com/restlessankyyy/canary-slm/actions/workflows/ci.yml/badge.svg)](https://github.com/restlessankyyy/canary-slm/actions/workflows/ci.yml)
+[![CI](https://github.com/ankit-raj_hmgroup/canary-slm/actions/workflows/ci.yml/badge.svg)](https://github.com/ankit-raj_hmgroup/canary-slm/actions/workflows/ci.yml)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
