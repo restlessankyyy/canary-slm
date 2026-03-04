@@ -9,7 +9,7 @@ import os
 import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import List, Dict, Optional, Any
@@ -124,17 +124,17 @@ async def score_fraud(req: TransactionRequest):
     Executes Business Rules Engine first, then ML model, and coalesces the decision.
     """
     t0 = time.time()
-    
+
     # 1. Convert Pydantic request to dict
     txn_dict = req.model_dump()
-    
+
     # 2. Run Business Rules Engine
     rule_label, rule_action, rule_name = evaluate_fraud_rules(txn_dict)
-    
+
     # 3. Run ML Model
     model = get_fraud_model()
     ml_result = model.predict(txn_dict)
-    
+
     # 4. Merge Decisions
     final_label, final_action, decision_source = override_ml_decision(
         ml_label=ml_result["risk_label"],
@@ -144,9 +144,9 @@ async def score_fraud(req: TransactionRequest):
         rule_action=rule_action,
         rule_name=rule_name
     )
-    
+
     processing_time_ms = (time.time() - t0) * 1000
-    
+
     return FraudResponse(
         transaction_id=req.transaction_id,
         timestamp=time.time(),
@@ -167,11 +167,11 @@ async def score_aml(req: AMLRequest):
     """
     t0 = time.time()
     model = get_aml_model()
-    
+
     result = model.score_account(req.transactions)
-    
+
     processing_time_ms = (time.time() - t0) * 1000
-    
+
     return AMLResponse(
         account_id=req.account_id,
         aml_probability=result["aml_probability"],

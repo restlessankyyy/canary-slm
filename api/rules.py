@@ -29,7 +29,7 @@ MAX_AUTO_APPROVE_AMOUNT = 50_000.0
 def evaluate_fraud_rules(transaction: Dict) -> Tuple[Optional[str], Optional[str], str]:
     """
     Evaluate a single transaction against business rules.
-    
+
     Returns:
         (rule_label, rule_action, rule_name)
         If no rule is triggered, returns (None, None, "")
@@ -58,7 +58,7 @@ def evaluate_fraud_rules(transaction: Dict) -> Tuple[Optional[str], Optional[str
 
 
 def override_ml_decision(
-    ml_label: str, ml_action: str, ml_prob: float, 
+    ml_label: str, ml_action: str, ml_prob: float,
     rule_label: Optional[str], rule_action: Optional[str], rule_name: str
 ) -> Tuple[str, str, str]:
     """
@@ -69,17 +69,17 @@ def override_ml_decision(
     # If no rule triggered, use ML
     if not rule_label:
         return ml_label, ml_action, "ML_MODEL"
-    
+
     # VIPs bypass everything EXCEPT ML "CRITICAL RISK"
     if rule_name == "VIP_ALLOWLIST":
         if "CRITICAL" in ml_label:
             return ml_label, "Review VIP (ML Critical)", "ML_MODEL_VIP_OVERRIDE"
         return rule_label, rule_action, rule_name
-    
+
     # OFAC Sanctions block absolutely everything
     if rule_name == "OFAC_SANCTIONS":
         return rule_label, rule_action, rule_name
-        
+
     # For anything else, return the MORE SEVERE action
     severity = {
         "🟢 LEGITIMATE": 0,
@@ -89,10 +89,10 @@ def override_ml_decision(
         "🚨 CRITICAL RISK": 4,
         "🚨 HIGH AML RISK": 4,
     }
-    
+
     ml_sev = severity.get(ml_label, 0)
     rule_sev = severity.get(rule_label, 0)
-    
+
     if rule_sev > ml_sev:
         return rule_label, rule_action, rule_name
     return ml_label, ml_action, "ML_MODEL"
